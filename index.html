@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/jquery.dataTables.css"/>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
+            integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bgit ootstrap.min.js"
+            integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT"
+            crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
+    <script src="upload-firebase.js"></script>
+    <style>
+        img {
+            height: 50px;
+        }
+    </style>
+</head>
+
+<body>
+<h1>Danh sách sản phẩm</h1>
+<button onclick="findAll()">Hiện danh sách Blog</button>
+<button onclick="show3Blog()">Hiện danh sách 3 Blog</button>
+<button onclick="showAddForm()">Thêm mới</button>
+<button onclick="loadMore()">Load More</button>
+
+<br><br>
+<input type="text" id="search">
+<button onclick="searchByName()">Search By Name</button>
+<table id="display">
+
+</table>
+</body>
+<script>
+    let size = 0; //Lay Size tu List
+    let show = document.getElementById("display")
+
+    $(document).ready(function () {
+        listBlog();
+        pageBlog();
+    })
+
+    function findAll() {
+        $.ajax({
+            type: "GET",
+            url: "http://localhost:8080/blogs",
+            success: function (blog) {
+                size = blog.length
+                console.log(blog)
+                // hien thi danh sach o day
+                let content = '    <tr>\n' +
+                    '        <td>Name</td>\n' +
+                    '        <td>Email</td>\n' +
+                    '        <td>Date</td>\n' +
+                    '        <td>Category</td>\n' +
+                    '        <td>Image</td>\n' +
+                    '        <td>Delete</td>\n' +
+                    '        <td>Edit</td>\n' +
+                    '    </tr>';
+                for (let i = 0; i < blog.length; i++) {
+                    content += `<tr>
+                                    <td>${blog[i].name}</td>
+                                    <td>${blog[i].email}</td>
+                                    <td>${blog[i].date}</td>
+                                    <td>${blog[i].category.name}</td>
+                                    <td><img class = "show_image" src= "${blog[i].image}"></td>
+                                    <td><button onclick="deleteBlog(${blog[i].id})">Delete</button></td>
+                                    <td><button onclick="showEditForm(${blog[i].id})">Edit</button></td>
+                                    </tr>`;
+                }
+                show.innerHTML = content;
+            }
+        });
+    }
+
+
+    function listBlog() {
+        $.ajax({
+            async: false,
+            method: "GET",
+            url: "http://localhost:8080/blogs",
+            dataType: "json",
+            success: function (blog) {
+                console.log('data list = ', blog.length)
+                size = blog.length
+            }
+        });
+    }
+
+    function pageBlog() {
+        $(function () {
+            let container = $('#demo');
+            container.pagination({
+                dataSource: 'http://localhost:8080/blogs',
+                locator: 'items',
+                totalNumber: size,
+                pageSize: 5,
+                callback: function (response, pagination) {
+                    let dataHtml = '<table border="1" class="table">' +
+                        '    <tr>\n' +
+                        '        <td>Name</td>\n' +
+                        '        <td>Email</td>\n' +
+                        '        <td>Date</td>\n' +
+                        '        <td>Category</td>\n' +
+                        '        <td>Image</td>\n' +
+                        '        <td>Delete</td>\n' +
+                        '        <td>Edit</td>\n' +
+                        '    </tr>'
+                    let pageStart = (pagination.pageNumber - 1) * pagination.pageSize;
+                    let pageEnd = pageStart + pagination.pageSize;
+                    let pageItems = response.slice(pageStart, pageEnd);
+                    $.each(pageItems, function (index, blog) {
+                        dataHtml +=
+                            '    <tr>\n' +
+                            '        <td>' + blog.name + '</td>\n' +
+                            '        <td>' + blog.email + '</td>\n' +
+                            '        <td>' + blog.date + '</td>\n' +
+                            '        <td>' + blog.category.name + '</td>\n' +
+                            '        <td>' + '<img ' + 'class =' + "show_image " + 'src=' + blog.image + '>' + '</td>\n' +
+                            '        <td><button onclick="deleteBlog(' + blog.id + ')">Delete</button></td>\n' +
+                            '        <td><button onclick="showEditForm(' + blog.id + ')">Edit</button></td>\n' +
+                            '    </tr>'
+
+                    })
+                    dataHtml += '</table>';
+                    container.prev().html(dataHtml);
+                }
+            })
+        })
+    }
+
+    function show3Blog() {
+        $.ajax({
+            type: "GET",
+            url: "http://localhost:8080/blogs/top3",
+            success: function (blog) {
+                console.log(blog)
+                let content = '    <tr>\n' +
+                    '        <td>Name</td>\n' +
+                    '        <td>Email</td>\n' +
+                    '        <td>Date</td>\n' +
+                    '        <td>Category</td>\n' +
+                    '        <td>Delete</td>\n' +
+                    '        <td>Edit</td>\n' +
+                    '    </tr>';
+                for (let i = 0; i < blog.length; i++) {
+                    content += `<tr>
+                                    <td>${blog[i].name}</td>
+                                    <td>${blog[i].email}</td>
+                                    <td>${blog[i].date}</td>
+                                    <td>${blog[i].category.name}</td>
+                                    <td><button onclick="deleteBlog(${blog[i].id})">Delete</button></td>
+                                    <td><button onclick="showEditForm(${blog[i].id})">Edit</button></td>
+                                    </tr>`;
+                }
+                show.innerHTML = content;
+            }
+        });
+    }
+
+    function showAddForm() {
+        let content = `<table>
+    <tr>
+        <td>Name:</td>
+        <td><input type="text" id="name" placeholder="name"/></td>
+    </tr>
+    <tr>
+        <td>Email:</td>
+        <td><input type="text" id="email" placeholder="email"/></td>
+    </tr>
+    <tr>
+        <td>Category:</td>
+        <td>
+            <select name="category" id="category">
+                <option id="1" value="sport">Sport</option>
+                <option id="2" value="love">Love</option>
+                <option id="3" value="society">Society</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <span>Image: </span>
+            <progress value="0" max="100" id="uploader">0%</progress>
+            <br>
+            <input type="file" value="upload" accept=".jpg" id="fileButton" onchange="upload(event)">
+            <br>
+        </td>
+        <td>
+            <div id="imgDiv"></div>
+        </td>
+    </tr>
+    <tr>
+        <td></td>
+        <td><input type="submit" value="Create Blog" onclick="addNewBlog()"></td>
+    </tr>
+</table>`
+        show.innerHTML = content;
+    }
+
+
+    function addNewBlog() {
+        let name = document.getElementById("name").value;
+        let email = document.getElementById("email").value;
+        let image = resultImage();
+        let categoryId = $("#category").find('option:selected').attr('id');
+        let newBlog = {
+            name: name,
+            email: email,
+            image: image,
+            category: {
+                id: categoryId
+            }
+        };
+        $.ajax({
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            type: "POST",
+            data: JSON.stringify(newBlog),
+            url: "http://localhost:8080/blogs",
+            success: function () {
+                findAll();
+            }
+        });
+    }
+
+    function deleteBlog(id) {
+        $.ajax({
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            type: "DELETE",
+            url: `http://localhost:8080/blogs/` + id,
+            //xử lý khi thành công
+            success: function () {
+                findAll();
+            }
+        });
+    }
+
+    function showEditForm(id) {
+        $.ajax({
+            type: "GET",
+            url: "http://localhost:8080/blogs/" + id,
+            success: function (blog) {
+                // hien thi danh sach o day
+                let content = `<table>
+    <tr>
+        <td>Name:</td>
+        <td><input type="text" id="nameedit" placeholder="${blog.name}"/></td>
+    </tr>
+    <tr>
+        <td>Email:</td>
+        <td><input type="text" id="emailedit" placeholder="${blog.email}"/></td>
+    </tr>
+
+    <tr>
+        <td>Category:</td>
+        <td>
+            <select name="category" id="categoryedit">
+                <option id="1" value="sport">Sport</option>
+                <option id="2" value="love">Love</option>
+                <option id="3" value="society">Society</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <span>Image: </span>
+            <progress value="0" max="100" id="uploader">0%</progress>
+            <br>
+            <input type="file" value="upload" accept=".jpg" id="fileButton" onchange="upload(event)">
+            <br>
+        </td>
+        <td>
+            <div id="imgDiv"></div>
+        </td>
+    </tr>
+    <tr>
+        <td></td>
+        <td><input type="submit" value="Edit" onclick="editBlog(${blog.id})"></td>
+    </tr>
+</table>`
+                show.innerHTML = content;
+            }
+        });
+    }
+
+    function editBlog(id) {
+        let name = document.getElementById("nameedit").value;
+        let email = document.getElementById("emailedit").value;
+        // let categoryId = document.getElementById("category").value;
+        // let categoryId = $("#category").find(":selected").val();
+        let categoryId = $("#categoryedit").find('option:selected').attr('id');
+        let newBlog = {
+            name: name,
+            email: email,
+            category: {
+                id: categoryId
+            }
+        };
+        $.ajax({
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            type: "PUT",
+            data: JSON.stringify(newBlog),
+            url: "http://localhost:8080/blogs/" + id,
+            success: function () {
+                findAll();
+            }
+        });
+    }
+
+    function searchByName() {
+        let name = document.getElementById("search").value;
+        $.ajax({
+            type: "GET",
+            url: "http://localhost:8080/blogs/search/" + name,
+            success: function (blog) {
+                // hien thi danh sach o day
+                let content = '    <tr>\n' +
+                    '        <td>Name</td>\n' +
+                    '        <td>Email</td>\n' +
+                    '        <td>Date</td>\n' +
+                    '        <td>Category</td>\n' +
+                    '        <td>Delete</td>\n' +
+                    '        <td>Edit</td>\n' +
+                    '    </tr>';
+                for (let i = 0; i < blog.length; i++) {
+                    content += `<tr>
+                                    <td>${blog[i].name}</td>
+                                    <td>${blog[i].email}</td>
+                                    <td>${blog[i].date}</td>
+                                    <td>${blog[i].category.name}</td>
+                                    <td><button onclick="deleteBlog(${blog[i].id})">Delete</button></td>
+                                    <td><button onclick="showEditForm(${blog[i].id})">Edit</button></td>
+                                    </tr>`;
+                }
+                show.innerHTML = content;
+            }
+        });
+    }
+
+
+    function loadMore() {
+        let rowCount = document.getElementById('display').rows.length - 1;
+        $.ajax({
+            type: "GET",
+            url: "http://localhost:8080/blogs//next3blog/" + rowCount,
+            success: function (blog) {
+                let content = "";
+                for (let i = 0; i < blog.length; i++) {
+                    content += `<tr>
+                                    <td>${blog[i].name}</td>
+                                    <td>${blog[i].email}</td>
+                                    <td>${blog[i].date}</td>
+                                    <td>${blog[i].category.name}</td>
+                                    <td><button onclick="deleteBlog(${blog[i].id})">Delete</button></td>
+                                    <td><button onclick="showEditForm(${blog[i].id})">Edit</button></td>
+                                    </tr>`;
+                }
+                $('#display').append(content);
+            }
+        });
+
+    }
+</script>
+
+<!--Pagination-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.4/pagination.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.4/pagination.css" rel="stylesheet"/>
+<hr>
+<h1 class="alert alert-primary">Pagination</h1>
+<div id="wrapper">
+    <section>
+        <div class="data-container"></div>
+        <div id="demo">
+
+        </div>
+    </section>
+</div>
+
+
+</html>
+
+<!--<table>-->
+<!--    <tr>-->
+<!--        <td>Name:</td>-->
+<!--        <td><input type="text" id="name" placeholder="name"/></td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <td>Email:</td>-->
+<!--        <td><input type="text" id="email" placeholder="email"/></td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <td>Category:</td>-->
+<!--        <td><input type="text" id="category" placeholder="category"/></td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <td></td>-->
+<!--        <td><button onclick="addNewBlog()">Create Blogs</button></td>-->
+<!--    </tr>-->
+<!--</table>-->
+
+<!--"<table>\n" +-->
+<!--    "    <tr>\n" +-->
+<!--        "        <td>Name:</td>\n" +-->
+<!--        "        <td><input type=\"text\" id=\"name\" placeholder=\"name\"/></td>\n" +-->
+<!--        "    </tr>\n" +-->
+<!--    "    <tr>\n" +-->
+<!--        "        <td>Email:</td>\n" +-->
+<!--        "        <td><input type=\"text\" id=\"email\" placeholder=\"email\"/></td>\n" +-->
+<!--        "    </tr>\n" +-->
+<!--    "    <tr>\n" +-->
+<!--        "        <td>Category:</td>\n" +-->
+<!--        "        <td>\n" +-->
+<!--            "            <select name=\"category\" id=\"category\">\n" +-->
+<!--                "                <option id=\"1\" value=\"sport\">Sport</option>\n" +-->
+<!--                "                <option id=\"2\" value=\"love\">Love</option>\n" +-->
+<!--                "                <option id=\"3\" value=\"society\">Society</option>\n" +-->
+<!--                "            </select>\n" +-->
+<!--            "        </td>\n" +-->
+<!--        "    </tr>\n" +-->
+<!--    "    <tr>\n" +-->
+<!--        "        <td></td>\n" +-->
+<!--        "        <td><input type=\"submit\" value=\"Create Blog\" onclick=\"addNewBlog()\"></td>\n" +-->
+<!--        "    </tr>\n" +-->
+<!--    "</table>"-->
+
+<!--<table>-->
+<!--    <tr>-->
+<!--        <td>Name:</td>-->
+<!--        <td><input type="text" id="name" placeholder="name"/></td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <td>Email:</td>-->
+<!--        <td><input type="text" id="email" placeholder="email"/></td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <td>Category:</td>-->
+<!--        <td>-->
+<!--            <select name="category" id="category">-->
+<!--                <option id="1" value="sport">Sport</option>-->
+<!--                <option id="2" value="love">Love</option>-->
+<!--                <option id="3" value="society">Society</option>-->
+<!--            </select>-->
+<!--        </td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <span>Image</span>-->
+<!--        <progress value="0" max="100" id="uploader">0%</progress>-->
+<!--        <input type="file" value="upload" accept=".jpg" id="fileButton">-->
+<!--        <div id="imgDiv"></div>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <td></td>-->
+<!--        <td><input type="submit" value="Create Blog" onclick="addNewBlog()"></td>-->
+<!--    </tr>-->
+<!--</table>-->
+
+<!--"<tr>\n" +-->
+<!--    "                                    <td>" + blog[i].name + "</td>\n" +-->
+<!--    "                                    <td>" + blog[i].email + "</td>\n" +-->
+<!--    "                                    <td>" + blog[i].date + "</td>\n" +-->
+<!--    "                                    <td>" + blog[i].category.name + "</td>\n" +-->
+<!--    "                                    <td><button onclick='deleteBlog(`${blog[i].id}`)'>Delete</button></td>\n" +-->
+<!--    "                                    </tr>"-->
