@@ -301,12 +301,14 @@
     function editBlog(id) {
         let name = document.getElementById("nameedit").value;
         let email = document.getElementById("emailedit").value;
+        let image = resultImage();
         // let categoryId = document.getElementById("category").value;
         // let categoryId = $("#category").find(":selected").val();
         let categoryId = $("#categoryedit").find('option:selected').attr('id');
         let newBlog = {
             name: name,
             email: email,
+            image: image,
             category: {
                 id: categoryId
             }
@@ -360,7 +362,7 @@
         let rowCount = document.getElementById('display').rows.length - 1;
         $.ajax({
             type: "GET",
-            url: "http://localhost:8080/blogs//next3blog/" + rowCount,
+            url: "http://localhost:8080/blogs/next3blog/" + rowCount,
             success: function (blog) {
                 let content = "";
                 for (let i = 0; i < blog.length; i++) {
