@@ -41,7 +41,7 @@
                 <a id="login" class="nav-link" href="login/login.html">Login</a>
             </li>
             <li class="nav-item">
-                <a id="user-account" class="nav-link" href="login/user-account.html"></a>
+                <a id="user-account" class="navbar-brand" href="login/profile.html"></a>
             </li>
         </ul>
 
@@ -97,7 +97,7 @@
                                     <td>${blog[i].date}</td>
                                     <td>${blog[i].category.name}</td>
                                     <td><img class = "show_image" src= "${blog[i].image}"></td>
-                                    <td><button onclick="deleteBlog(${blog[i].id})">Delete</button></td>
+                                    <td><button id="delete" onclick="deleteBlog(${blog[i].id})">Delete</button></td>
                                     <td><button onclick="showEditForm(${blog[i].id})">Edit</button></td>
                                     </tr>`;
                 }
@@ -290,10 +290,10 @@
 
     function deleteBlog(id) {
         $.ajax({
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
+            // headers: {
+            //     'Accept': 'application/json',
+            //     'Content-Type': 'application/json',
+            // },
             type: "DELETE",
             url: `http://localhost:8080/blogs/` + id,
             //xử lý khi thành công
@@ -462,6 +462,17 @@
 
     }
 </script>
+<script>
+    if (window.sessionStorage.getItem('TOKEN_KEY') !== null) {
+        document.getElementById('register').innerHTML = '';
+        document.getElementById('login').innerHTML = '';
+        let name = window.sessionStorage.getItem('NAME_KEY');
+        console.log('name === ', name)
+        // document.getElementById('user-account').innerHTML = name;
+        document.getElementById("user-account").innerHTML = "Profile's " + name.charAt(0).toUpperCase() + name.slice(1);
+        document.getElementById("delete").style.visibility = "hidden";
+    }
+</script>
 
 <!--Pagination-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -477,89 +488,4 @@
         </div>
     </section>
 </div>
-
-
 </html>
-
-<!--<table>-->
-<!--    <tr>-->
-<!--        <td>Name:</td>-->
-<!--        <td><input type="text" id="name" placeholder="name"/></td>-->
-<!--    </tr>-->
-<!--    <tr>-->
-<!--        <td>Email:</td>-->
-<!--        <td><input type="text" id="email" placeholder="email"/></td>-->
-<!--    </tr>-->
-<!--    <tr>-->
-<!--        <td>Category:</td>-->
-<!--        <td><input type="text" id="category" placeholder="category"/></td>-->
-<!--    </tr>-->
-<!--    <tr>-->
-<!--        <td></td>-->
-<!--        <td><button onclick="addNewBlog()">Create Blogs</button></td>-->
-<!--    </tr>-->
-<!--</table>-->
-
-<!--"<table>\n" +-->
-<!--    "    <tr>\n" +-->
-<!--        "        <td>Name:</td>\n" +-->
-<!--        "        <td><input type=\"text\" id=\"name\" placeholder=\"name\"/></td>\n" +-->
-<!--        "    </tr>\n" +-->
-<!--    "    <tr>\n" +-->
-<!--        "        <td>Email:</td>\n" +-->
-<!--        "        <td><input type=\"text\" id=\"email\" placeholder=\"email\"/></td>\n" +-->
-<!--        "    </tr>\n" +-->
-<!--    "    <tr>\n" +-->
-<!--        "        <td>Category:</td>\n" +-->
-<!--        "        <td>\n" +-->
-<!--            "            <select name=\"category\" id=\"category\">\n" +-->
-<!--                "                <option id=\"1\" value=\"sport\">Sport</option>\n" +-->
-<!--                "                <option id=\"2\" value=\"love\">Love</option>\n" +-->
-<!--                "                <option id=\"3\" value=\"society\">Society</option>\n" +-->
-<!--                "            </select>\n" +-->
-<!--            "        </td>\n" +-->
-<!--        "    </tr>\n" +-->
-<!--    "    <tr>\n" +-->
-<!--        "        <td></td>\n" +-->
-<!--        "        <td><input type=\"submit\" value=\"Create Blog\" onclick=\"addNewBlog()\"></td>\n" +-->
-<!--        "    </tr>\n" +-->
-<!--    "</table>"-->
-
-<!--<table>-->
-<!--    <tr>-->
-<!--        <td>Name:</td>-->
-<!--        <td><input type="text" id="name" placeholder="name"/></td>-->
-<!--    </tr>-->
-<!--    <tr>-->
-<!--        <td>Email:</td>-->
-<!--        <td><input type="text" id="email" placeholder="email"/></td>-->
-<!--    </tr>-->
-<!--    <tr>-->
-<!--        <td>Category:</td>-->
-<!--        <td>-->
-<!--            <select name="category" id="category">-->
-<!--                <option id="1" value="sport">Sport</option>-->
-<!--                <option id="2" value="love">Love</option>-->
-<!--                <option id="3" value="society">Society</option>-->
-<!--            </select>-->
-<!--        </td>-->
-<!--    </tr>-->
-<!--    <tr>-->
-<!--        <span>Image</span>-->
-<!--        <progress value="0" max="100" id="uploader">0%</progress>-->
-<!--        <input type="file" value="upload" accept=".jpg" id="fileButton">-->
-<!--        <div id="imgDiv"></div>-->
-<!--    </tr>-->
-<!--    <tr>-->
-<!--        <td></td>-->
-<!--        <td><input type="submit" value="Create Blog" onclick="addNewBlog()"></td>-->
-<!--    </tr>-->
-<!--</table>-->
-
-<!--"<tr>\n" +-->
-<!--    "                                    <td>" + blog[i].name + "</td>\n" +-->
-<!--    "                                    <td>" + blog[i].email + "</td>\n" +-->
-<!--    "                                    <td>" + blog[i].date + "</td>\n" +-->
-<!--    "                                    <td>" + blog[i].category.name + "</td>\n" +-->
-<!--    "                                    <td><button onclick='deleteBlog(`${blog[i].id}`)'>Delete</button></td>\n" +-->
-<!--    "                                    </tr>"-->

@@ -413,9 +413,6 @@
         let password = document.getElementById("passwordedit").value;
         let username = document.getElementById("usernameedit").value;
         let avatar = resultImage();
-        if(avatar == "") {
-
-        }
         let roleName = $("#role").find('option:selected').attr('value');
         let regexEmail = /^[A-Za-z0-9]+[A-Za-z0-9]*@[A-Za-z0-9]+(\.[A-Za-z0-9]+)$/;
 
@@ -488,7 +485,7 @@
         $(function () {
             let container = $('#demo');
             container.pagination({
-                dataSource: "http://localhost:8080/users/search/" + name,
+                dataSource: "http://localhost:8080/users/search-name/" + name,
                 locator: 'items',
                 totalNumber: size,
                 pageSize: 5,
