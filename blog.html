@@ -25,20 +25,44 @@
         }
     </style>
 </head>
-
 <body>
-<h1>Danh sách sản phẩm</h1>
-<button onclick="findAll()">Hiện danh sách Blog</button>
-<button onclick="show3Blog()">Hiện danh sách 3 Blog</button>
-<button onclick="showAddForm()">Thêm mới</button>
-<button onclick="loadMore()">Load More</button>
+<!--Start Navbar-->
+<nav class="navbar navbar-expand-lg" style="background-color: #fdd2f5">
+    <a class="navbar-brand" href="#">Home</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a id="register" class="nav-link" href="login/register.html">Register</a>
+            </li>
+            <li class="nav-item">
+                <a id="login" class="nav-link" href="login/login.html">Login</a>
+            </li>
+            <li class="nav-item">
+                <a id="user-account" class="nav-link" href="login/user-account.html"></a>
+            </li>
+        </ul>
 
-<br><br>
-<input type="text" id="search">
-<button onclick="searchByName()">Search By Name</button>
-<table id="display">
+    </div>
+</nav>
+<!--End Navbar-->
 
-</table>
+<div>
+    <h1>Danh sách sản phẩm</h1>
+    <button onclick="findAll()">Hiện danh sách Blog</button>
+    <button onclick="show3Blog()">Hiện danh sách 3 Blog</button>
+    <button onclick="showAddForm()">Thêm mới</button>
+    <button onclick="loadMore()">Load More</button>
+    <br><br>
+    <input type="text" id="search">
+    <button onclick="searchByName()">Search By Name</button>
+    <table id="display">
+
+    </table>
+</div>
+
 </body>
 <script>
     let size = 0; //Lay Size tu List
@@ -170,8 +194,14 @@
     function showAddForm() {
         let content = `<table>
     <tr>
+    <td><span id="validate_name" style="color: red"></span></td>
+    </tr>
+    <tr>
         <td>Name:</td>
         <td><input type="text" id="name" placeholder="name"/></td>
+    </tr>
+    <tr>
+    <td><span id="validate_email" style="color: red"></span></td>
     </tr>
     <tr>
         <td>Email:</td>
@@ -213,6 +243,25 @@
         let email = document.getElementById("email").value;
         let image = resultImage();
         let categoryId = $("#category").find('option:selected').attr('id');
+        let regexEmail = /^[A-Za-z0-9]+[A-Za-z0-9]*@[A-Za-z0-9]+(\.[A-Za-z0-9]+)$/;
+
+        if (name == "") {
+            document.getElementById("validate_name").innerHTML = "The name is required!";
+            return;
+        } else {
+            document.getElementById("validate_name").innerHTML = "";
+        }
+
+        if (email == "") {
+            document.getElementById("validate_email").innerHTML = "The email is required!";
+            return;
+        } else if (!regexEmail.test(email)) {
+            document.getElementById("validate_email").innerHTML = "The email is not valid!"
+            return;
+        } else {
+            document.getElementById("validate_email").innerHTML = "";
+        }
+
         let newBlog = {
             name: name,
             email: email,
@@ -231,6 +280,10 @@
             url: "http://localhost:8080/blogs",
             success: function () {
                 findAll();
+                listBlog();
+                pageBlog();
+                $('#name').val('');
+                $('#email').val('');
             }
         });
     }
@@ -246,6 +299,8 @@
             //xử lý khi thành công
             success: function () {
                 findAll();
+                listBlog();
+                pageBlog();
             }
         });
     }
@@ -258,12 +313,18 @@
                 // hien thi danh sach o day
                 let content = `<table>
     <tr>
+    <td><span id="validate_name" style="color: red"></span></td>
+    </tr>
+    <tr>
         <td>Name:</td>
-        <td><input type="text" id="nameedit" placeholder="${blog.name}"/></td>
+        <td><input type="text" id="nameedit" value="${blog.name}"/></td>
+    </tr>
+    <tr>
+    <td><span id="validate_email" style="color: red"></span></td>
     </tr>
     <tr>
         <td>Email:</td>
-        <td><input type="text" id="emailedit" placeholder="${blog.email}"/></td>
+        <td><input type="text" id="emailedit" value="${blog.email}"/></td>
     </tr>
 
     <tr>
@@ -302,9 +363,25 @@
         let name = document.getElementById("nameedit").value;
         let email = document.getElementById("emailedit").value;
         let image = resultImage();
-        // let categoryId = document.getElementById("category").value;
-        // let categoryId = $("#category").find(":selected").val();
         let categoryId = $("#categoryedit").find('option:selected').attr('id');
+        let regexEmail = /^[A-Za-z0-9]+[A-Za-z0-9]*@[A-Za-z0-9]+(\.[A-Za-z0-9]+)$/;
+        if (name == "") {
+            document.getElementById("validate_name").innerHTML = "The name is required!";
+            return;
+        } else {
+            document.getElementById("validate_name").innerHTML = "";
+        }
+
+        if (email == "") {
+            document.getElementById("validate_email").innerHTML = "The email is required!";
+            return;
+        } else if (!regexEmail.test(email)) {
+            document.getElementById("validate_email").innerHTML = "The email is not valid!"
+            return;
+        } else {
+            document.getElementById("validate_email").innerHTML = "";
+        }
+
         let newBlog = {
             name: name,
             email: email,
@@ -323,6 +400,10 @@
             url: "http://localhost:8080/blogs/" + id,
             success: function () {
                 findAll();
+                listBlog();
+                pageBlog();
+                $('#name').val('');
+                $('#email').val('');
             }
         });
     }

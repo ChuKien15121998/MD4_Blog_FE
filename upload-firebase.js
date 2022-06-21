@@ -91,6 +91,6 @@ function upload(e) {
 }
 
 function resultImage() {
-    console.log('image resulte -->', image)
+    console.log('image result -->', image)
     return image;
 }

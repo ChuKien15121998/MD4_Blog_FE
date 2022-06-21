@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/jquery.dataTables.css"/>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
+            integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bgit ootstrap.min.js"
+            integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT"
+            crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
+    <script src="upload-firebase.js"></script>
+    <style>
+        img {
+            height: 50px;
+        }
+    </style>
+</head>
+<body>
+<!--Start Navbar-->
+<nav class="navbar navbar-expand-lg" style="background-color: #fdd2f5">
+    <a class="navbar-brand" href="#">Home</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a id="register" class="nav-link" href="login/register.html">Register</a>
+            </li>
+            <li class="nav-item">
+                <a id="login" class="nav-link" href="login/login.html">Login</a>
+            </li>
+            <li class="nav-item">
+                <a id="user-account" class="nav-link" href="login/user-account.html"></a>
+            </li>
+        </ul>
+
+    </div>
+</nav>
+<!--End Navbar-->
+
+<div>
+    <h1>Danh sách người dùng</h1>
+    <button onclick="findAll()">Hiện danh sách User</button>
+    <button onclick="show3User()">Hiện danh sách 3 User</button>
+    <button onclick="showAddForm()">Thêm mới</button>
+    <button onclick="loadMore()">Load More</button>
+    <br><br>
+    <input type="text" id="search">
+    <button onclick="searchByName()">Search By Username</button>
+    <table id="display">
+
+    </table>
+</div>
+
+</body>
+<script>
+    let size = 0; //Lay Size tu List
+    let show = document.getElementById("display")
+
+    $(document).ready(function () {
+        listUser();
+        pageUser();
+    })
+
+    function findAll() {
+        $.ajax({
+            type: "GET",
+            url: "http://localhost:8080/users",
+            success: function (user) {
+                size = user.length
+                console.log(user)
+                // hien thi danh sach o day
+                let content = '    <tr>\n' +
+                    '        <td>Name</td>\n' +
+                    '        <td>Username</td>\n' +
+                    '        <td>Email</td>\n' +
+                    '        <td>Role</td>\n' +
+                    '        <td>Avatar</td>\n' +
+                    '        <td>Delete</td>\n' +
+                    '        <td>Edit</td>\n' +
+                    '    </tr>';
+                for (let i = 0; i < user.length; i++) {
+                    content += `<tr>
+                                    <td>${user[i].name}</td>
+                                    <td>${user[i].username}</td>
+                                    <td>${user[i].email}</td>
+                                    <td>${user[i].roles[0].name}</td>
+                                    <td><img class = "show_image" src= "${user[i].avatar}"></td>
+                                    <td><button onclick="deleteUser(${user[i].id})">Delete</button></td>
+                                    <td><button onclick="showEditForm(${user[i].id})">Edit</button></td>
+                                    </tr>`;
+                }
+                show.innerHTML = content;
+            }
+        });
+    }
+
+
+    function listUser() {
+        $.ajax({
+            async: false,
+            method: "GET",
+            url: "http://localhost:8080/users",
+            dataType: "json",
+            success: function (user) {
+                console.log('data list = ', user.length)
+                size = user.length
+            }
+        });
+    }
+
+    function pageUser() {
+        $(function () {
+            let container = $('#demo');
+            container.pagination({
+                dataSource: 'http://localhost:8080/users',
+                locator: 'items',
+                totalNumber: size,
+                pageSize: 5,
+                callback: function (response, pagination) {
+                    let dataHtml = '<table border="1" class="table">' +
+                        '    <tr>\n' +
+                        '        <td>Name</td>\n' +
+                        '        <td>Username</td>\n' +
+                        '        <td>Email</td>\n' +
+                        '        <td>Role</td>\n' +
+                        '        <td>Avatar</td>\n' +
+                        '        <td>Delete</td>\n' +
+                        '        <td>Edit</td>\n' +
+                        '    </tr>'
+                    let pageStart = (pagination.pageNumber - 1) * pagination.pageSize;
+                    let pageEnd = pageStart + pagination.pageSize;
+                    let pageItems = response.slice(pageStart, pageEnd);
+                    $.each(pageItems, function (index, user) {
+                        dataHtml +=
+                            '    <tr>\n' +
+                            '        <td>' + user.name + '</td>\n' +
+                            '        <td>' + user.username + '</td>\n' +
+                            '        <td>' + user.email + '</td>\n' +
+                            '        <td>' + user.roles[0].name + '</td>\n' +
+                            '        <td>' + '<img ' + 'class =' + "show_image " + 'src=' + user.avatar + '>' + '</td>\n' +
+                            '        <td><button onclick="deleteUser(' + user.id + ')">Delete</button></td>\n' +
+                            '        <td><button onclick="showEditForm(' + user.id + ')">Edit</button></td>\n' +
+                            '    </tr>'
+
+                    })
+                    dataHtml += '</table>';
+                    container.prev().html(dataHtml);
+                }
+            })
+        })
+    }
+
+    function show3User() {
+        $.ajax({
+            type: "GET",
+            url: "http://localhost:8080/users/top3",
+            success: function (user) {
+                let content = '    <tr>\n' +
+                    '        <td>Name</td>\n' +
+                    '        <td>Username</td>\n' +
+                    '        <td>Email</td>\n' +
+                    '        <td>Role</td>\n' +
+                    '        <td>Avatar</td>\n' +
+                    '        <td>Delete</td>\n' +
+                    '        <td>Edit</td>\n' +
+                    '    </tr>';
+                for (let i = 0; i < user.length; i++) {
+                    content += `<tr>
+                                    <td>${user[i].name}</td>
+                                    <td>${user[i].username}</td>
+                                    <td>${user[i].email}</td>
+                                    <td>${user[i].roles[0].name}</td>
+                                    <td><img class = "show_image" src= "${user[i].avatar}"></td>
+                                    <td><button onclick="deleteUser(${user[i].id})">Delete</button></td>
+                                    <td><button onclick="showEditForm(${user[i].id})">Edit</button></td>
+                                    </tr>`;
+                }
+                show.innerHTML = content;
+            }
+        });
+    }
+
+    function showAddForm() {
+        let content = `<table>
+    <tr>
+    <td><span id="validate_name" style="color: red"></span></td>
+    </tr>
+    <tr>
+        <td>Name:</td>
+        <td><input type="text" id="name" placeholder="name"/></td>
+    </tr>
+    <tr>
+    <td><span id="validate_username" style="color: red"></span></td>
+    </tr>
+    <tr>
+        <td>Username:</td>
+        <td><input type="text" id="username" placeholder="username"/></td>
+    </tr>
+    <tr>
+    <td><span id="validate_email" style="color: red"></span></td>
+    </tr>
+    <tr>
+        <td>Email:</td>
+        <td><input type="text" id="email" placeholder="email"/></td>
+    </tr>
+    <tr>
+    <td><span id="validate_password" style="color: red"></span></td>
+    </tr>
+    <tr>
+        <td>Password:</td>
+        <td><input type="text" id="password" placeholder="password"/></td>
+    </tr>
+    <tr>
+        <td>Role:</td>
+        <td>
+            <select name="role" id="role">
+                <option id="1" value="admin">ADMIN</option>
+                <option id="2" value="user">USER</option>
+                <option id="3" value="pm">PM</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <span>Avatar: </span>
+            <progress value="0" max="100" id="uploader">0%</progress>
+            <br>
+            <input type="file" value="upload" accept=".jpg" id="fileButton" onchange="upload(event)">
+            <br>
+        </td>
+        <td>
+            <div id="imgDiv"></div>
+        </td>
+    </tr>
+    <tr>
+        <td></td>
+        <td><input type="submit" value="Create User" onclick="addNewUser()"></td>
+    </tr>
+</table>`
+        show.innerHTML = content;
+    }
+
+
+    function addNewUser() {
+        let name = document.getElementById("name").value;
+        let email = document.getElementById("email").value;
+        let password = document.getElementById("password").value;
+        let username = document.getElementById("username").value;
+        let avatar = resultImage();
+        let roleId = $("#role").find('option:selected').attr('id');
+        let regexEmail = /^[A-Za-z0-9]+[A-Za-z0-9]*@[A-Za-z0-9]+(\.[A-Za-z0-9]+)$/;
+
+        if (name == "") {
+            document.getElementById("validate_name").innerHTML = "The name is required!";
+            return;
+        } else {
+            document.getElementById("validate_name").innerHTML = "";
+        }
+
+        if (username == "") {
+            document.getElementById("validate_username").innerHTML = "The username is required!";
+            return;
+        } else {
+            document.getElementById("validate_username").innerHTML = "";
+        }
+
+        if (password == "") {
+            document.getElementById("validate_password").innerHTML = "The password is required!";
+            return;
+        } else {
+            document.getElementById("validate_password").innerHTML = "";
+        }
+
+        if (email == "") {
+            document.getElementById("validate_email").innerHTML = "The email is required!";
+            return;
+        } else if (!regexEmail.test(email)) {
+            document.getElementById("validate_email").innerHTML = "The email is not valid!"
+            return;
+        } else {
+            document.getElementById("validate_email").innerHTML = "";
+        }
+
+        let newUser = {
+            name: name,
+            username: username,
+            email: email,
+            password: password,
+            avatar: avatar,
+            roles: {
+                id: roleId
+            }
+        };
+        $.ajax({
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            type: "POST",
+            data: JSON.stringify(newUser),
+            url: "http://localhost:8080/signup",
+            success: function () {
+                findAll();
+                listUser();
+                pageUser();
+                $('#name').val('');
+                $('#username').val('');
+                $('#email').val('');
+                $('#password').val('');
+            }
+        });
+    }
+
+    function deleteUser(id) {
+        $.ajax({
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            type: "DELETE",
+            url: `http://localhost:8080/users/` + id,
+            //xử lý khi thành công
+            success: function () {
+                findAll();
+                listUser();
+                pageUser();
+            }
+        });
+    }
+
+    function showEditForm(id) {
+        $.ajax({
+            type: "GET",
+            url: "http://localhost:8080/users/" + id,
+            success: function (user) {
+                // hien thi danh sach o day
+                let content = `<table>
+    <tr>
+    <td><span id="validate_name" style="color: red"></span></td>
+    </tr>
+    <tr>
+        <td>Name:</td>
+        <td><input type="text" id="nameedit" value="${user.name}"/></td>
+    </tr>
+    <tr>
+    <td><span id="validate_username" style="color: red"></span></td>
+    </tr>
+    <tr>
+        <td>Username:</td>
+        <td><input type="text" id="usernameedit" value="${user.username}"/></td>
+    </tr>
+    <tr>
+    <td><span id="validate_email" style="color: red"></span></td>
+    </tr>
+    <tr>
+        <td>Email:</td>
+        <td><input type="text" id="emailedit" value="${user.email}"/></td>
+    </tr>
+    <tr>
+    <td><span id="validate_password" style="color: red"></span></td>
+    </tr>
+    <tr>
+        <td>Password:</td>
+        <td><input type="text" id="passwordedit" value="${user.password}"/></td>
+    </tr>
+    <tr>
+        <td>Role:</td>
+        <td>
+            <select name="role" id="role">
+                <option id="1" value="admin">ADMIN</option>
+                <option id="2" value="user">USER</option>
+                <option id="3" value="pm">PM</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <span>Avatar: </span>
+            <progress value="0" max="100" id="uploader">0%</progress>
+            <br>
+            <input type="file" value="upload" accept=".jpg" id="fileButton" onchange="upload(event)">
+            <br>
+        </td>
+        <td>
+            <div id="imgDiv"></div>
+        </td>
+    </tr>
+    <tr>
+        <td></td>
+        <td><input type="submit" value="Edit" onclick="editUser(${user.id})"></td>
+    </tr>
+</table>`
+                show.innerHTML = content;
+            }
+        });
+    }
+
+    function editUser(id) {
+        let name = document.getElementById("nameedit").value;
+        let email = document.getElementById("emailedit").value;
+        let password = document.getElementById("passwordedit").value;
+        let username = document.getElementById("usernameedit").value;
+        let avatar = resultImage();
+        if(avatar == "") {
+
+        }
+        let roleName = $("#role").find('option:selected').attr('value');
+        let regexEmail = /^[A-Za-z0-9]+[A-Za-z0-9]*@[A-Za-z0-9]+(\.[A-Za-z0-9]+)$/;
+
+        if (name == "") {
+            document.getElementById("validate_name").innerHTML = "The name is required!";
+            return;
+        } else {
+            document.getElementById("validate_name").innerHTML = "";
+        }
+
+        if (username == "") {
+            document.getElementById("validate_username").innerHTML = "The username is required!";
+            return;
+        } else {
+            document.getElementById("validate_username").innerHTML = "";
+        }
+
+        if (password == "") {
+            document.getElementById("validate_password").innerHTML = "The password is required!";
+            return;
+        } else {
+            document.getElementById("validate_password").innerHTML = "";
+        }
+
+        if (email == "") {
+            document.getElementById("validate_email").innerHTML = "The email is required!";
+            return;
+        } else if (!regexEmail.test(email)) {
+            document.getElementById("validate_email").innerHTML = "The email is not valid!"
+            return;
+        } else {
+            document.getElementById("validate_email").innerHTML = "";
+        }
+
+        let editUser = {
+            name: name,
+            username: username,
+            email: email,
+            password: password,
+            avatar: avatar,
+            role: roleName
+        };
+        console.log("editUser.....", editUser);
+        $.ajax({
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            type: "PUT",
+            data: JSON.stringify(editUser),
+            url: "http://localhost:8080/users/" + id,
+            success: function () {
+                findAll();
+                listUser();
+                pageUser();
+                $('#name').val('');
+                $('#username').val('');
+                $('#email').val('');
+                $('#password').val('');
+            }
+        });
+    }
+
+    function searchByName() {
+        let name = document.getElementById("search").value;
+        if(name === ''){
+            pageUser();
+            return;
+        }
+        $(function () {
+            let container = $('#demo');
+            container.pagination({
+                dataSource: "http://localhost:8080/users/search/" + name,
+                locator: 'items',
+                totalNumber: size,
+                pageSize: 5,
+                callback: function (response, pagination) {
+                    let dataHtml = '<table border="1" class="table">' +
+                        '    <tr>\n' +
+                        '        <td>Name</td>\n' +
+                        '        <td>Username</td>\n' +
+                        '        <td>Email</td>\n' +
+                        '        <td>Role</td>\n' +
+                        '        <td>Avatar</td>\n' +
+                        '        <td>Delete</td>\n' +
+                        '        <td>Edit</td>\n' +
+                        '    </tr>'
+                    let pageStart = (pagination.pageNumber - 1) * pagination.pageSize;
+                    let pageEnd = pageStart + pagination.pageSize;
+                    let pageItems = response.slice(pageStart, pageEnd);
+                    $.each(pageItems, function (index, user) {
+                        dataHtml +=
+                            '    <tr>\n' +
+                            '        <td>' + user.name + '</td>\n' +
+                            '        <td>' + user.username + '</td>\n' +
+                            '        <td>' + user.email + '</td>\n' +
+                            '        <td>' + user.roles[0].name + '</td>\n' +
+                            '        <td>' + '<img ' + 'class =' + "show_image " + 'src=' + user.avatar + '>' + '</td>\n' +
+                            '        <td><button onclick="deleteUser(' + user.id + ')">Delete</button></td>\n' +
+                            '        <td><button onclick="showEditForm(' + user.id + ')">Edit</button></td>\n' +
+                            '    </tr>'
+
+                    })
+                    dataHtml += '</table>';
+                    container.prev().html(dataHtml);
+                }
+            })
+        })
+    }
+
+
+    function loadMore() {
+        let rowCount = document.getElementById('display').rows.length - 1;
+        console.log("rowcount====", rowCount);
+        $.ajax({
+            type: "GET",
+            url: "http://localhost:8080/users/next3users/" + rowCount,
+            success: function (user) {
+                let content = "";
+                for (let i = 0; i < user.length; i++) {
+                    content += `<tr>
+                                    <td>${user[i].name}</td>
+                                    <td>${user[i].username}</td>
+                                    <td>${user[i].email}</td>
+                                    <td>${user[i].roles[0].name}</td>
+                                    <td><img class = "show_image" src= "${user[i].avatar}"></td>
+                                    <td><button onclick="deleteUser(${user[i].id})">Delete</button></td>
+                                    <td><button onclick="showEditForm(${user[i].id})">Edit</button></td>
+                                    </tr>`;
+                }
+                $('#display').append(content);
+            }
+        });
+
+    }
+</script>
+
+<!--Pagination-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.4/pagination.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.4/pagination.css" rel="stylesheet"/>
+<hr>
+<h1 class="alert alert-primary">Pagination</h1>
+<div id="wrapper">
+    <section>
+        <div class="data-container"></div>
+        <div id="demo">
+
+        </div>
+    </section>
+</div>
+
+
+</html>
+
+<!--<table>-->
+<!--    <tr>-->
+<!--        <td>Name:</td>-->
+<!--        <td><input type="text" id="name" placeholder="name"/></td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <td>Email:</td>-->
+<!--        <td><input type="text" id="email" placeholder="email"/></td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <td>Category:</td>-->
+<!--        <td><input type="text" id="category" placeholder="category"/></td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <td></td>-->
+<!--        <td><button onclick="addNewBlog()">Create Blogs</button></td>-->
+<!--    </tr>-->
+<!--</table>-->
+
+<!--"<table>\n" +-->
+<!--    "    <tr>\n" +-->
+<!--        "        <td>Name:</td>\n" +-->
+<!--        "        <td><input type=\"text\" id=\"name\" placeholder=\"name\"/></td>\n" +-->
+<!--        "    </tr>\n" +-->
+<!--    "    <tr>\n" +-->
+<!--        "        <td>Email:</td>\n" +-->
+<!--        "        <td><input type=\"text\" id=\"email\" placeholder=\"email\"/></td>\n" +-->
+<!--        "    </tr>\n" +-->
+<!--    "    <tr>\n" +-->
+<!--        "        <td>Category:</td>\n" +-->
+<!--        "        <td>\n" +-->
+<!--            "            <select name=\"category\" id=\"category\">\n" +-->
+<!--                "                <option id=\"1\" value=\"sport\">Sport</option>\n" +-->
+<!--                "                <option id=\"2\" value=\"love\">Love</option>\n" +-->
+<!--                "                <option id=\"3\" value=\"society\">Society</option>\n" +-->
+<!--                "            </select>\n" +-->
+<!--            "        </td>\n" +-->
+<!--        "    </tr>\n" +-->
+<!--    "    <tr>\n" +-->
+<!--        "        <td></td>\n" +-->
+<!--        "        <td><input type=\"submit\" value=\"Create Blog\" onclick=\"addNewBlog()\"></td>\n" +-->
+<!--        "    </tr>\n" +-->
+<!--    "</table>"-->
+
+<!--<table>-->
+<!--    <tr>-->
+<!--        <td>Name:</td>-->
+<!--        <td><input type="text" id="name" placeholder="name"/></td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <td>Email:</td>-->
+<!--        <td><input type="text" id="email" placeholder="email"/></td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <td>Category:</td>-->
+<!--        <td>-->
+<!--            <select name="category" id="category">-->
+<!--                <option id="1" value="sport">Sport</option>-->
+<!--                <option id="2" value="love">Love</option>-->
+<!--                <option id="3" value="society">Society</option>-->
+<!--            </select>-->
+<!--        </td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <span>Image</span>-->
+<!--        <progress value="0" max="100" id="uploader">0%</progress>-->
+<!--        <input type="file" value="upload" accept=".jpg" id="fileButton">-->
+<!--        <div id="imgDiv"></div>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <td></td>-->
+<!--        <td><input type="submit" value="Create Blog" onclick="addNewBlog()"></td>-->
+<!--    </tr>-->
+<!--</table>-->
+
+<!--"<tr>\n" +-->
+<!--    "                                    <td>" + blog[i].name + "</td>\n" +-->
+<!--    "                                    <td>" + blog[i].email + "</td>\n" +-->
+<!--    "                                    <td>" + blog[i].date + "</td>\n" +-->
+<!--    "                                    <td>" + blog[i].category.name + "</td>\n" +-->
+<!--    "                                    <td><button onclick='deleteBlog(`${blog[i].id}`)'>Delete</button></td>\n" +-->
+<!--    "                                    </tr>"-->
